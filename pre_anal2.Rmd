@@ -14,9 +14,20 @@ library(tm)
 library(ggplot2)
 ```
 
-Create Corpus
+load text file and sample about 10% of the text
 ```{r cache=TRUE}
-docs = Corpus(DirSource("./final/en_US", encoding = 'UTF-8'))
+blog = readLines('./final/en_US/en_US.blogs.txt', encoding = 'UTF-8')
+set.seed(465)
+blog <- sample(blog, round(length(blog)/10))
+docs <- Corpus(VectorSource(blog))
+```
+
+```{r cache=TRUE}
+news = readLines('./final/en_US/en_US.news.txt', encoding = 'UTF-8')
+set.seed(376)
+news = sample(news, round(length(news)/10)
+                          
+                          
 ```
 
 Define a content transformer that will substitute matching pattern to single space
