@@ -1,0 +1,56 @@
+---
+title: "Text Minining"
+author: "Joohyun Kwon"
+date: "May 19, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r cars}
+library(tm)
+library(ggplot2)
+```
+
+Create Corpus
+```{r cache=TRUE}
+docs = Corpus(DirSource("./final/en_US"))
+```
+
+Define a content transformer that will substitute matching pattern to single space
+```{r}
+toSpace = content_transformer(function(x, pattern) { return (gsub(pattern, ' ', x))})
+```
+
+replace ':' and '-' with space using above toSpace content transformer
+```{r cache=TRUE}
+docs = tm_map(docs, toSpace, ':')
+docs = tm_map(docs, toSpace, '-')
+```
+
+```{r cache=TRUE}
+docs = tm_map(docs, removePunctuation)
+docs = tm_map(docs, content_transformer(tolower))
+```
+
+```{r cache=TRUE}
+docs = tm_map(docs, removeNumbers)
+docs <- tm_map(docs, removeWords, stopwords("english"))
+docs <- tm_map(docs, stripWhitespace)
+```
+
+load library for stemming
+```{r}
+library(SnowballC)
+```
+```{r cache=TRUE}
+docs = tm_map(docs, stemDocument)
+```
+```{r}
+dtm = DocumentTermMatrix(docs)
+```
+
+
+
