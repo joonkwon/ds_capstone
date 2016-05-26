@@ -28,10 +28,20 @@ docs_blog <- Corpus(VectorSource(blog))
 dblogs = tm_map(docs_blog, gsub, pattern="\\\"", replacement = " ")
 # remove some special character and puctuation
 #dblogs = tm_map(dblogs, gsub, pattern ="[\\?\\.\\*!]", replacement = " ")
-dblogs = tm_map(dblogs, gsub, pattern ="[\\*%0-9:;\\)\\(]", replacement = " ")
+# remove *, %, :, ;, (, ), =, #, ~, /, - and numbers
+dblogs = tm_map(dblogs, gsub, pattern ="[\\*%0-9:;\\)\\(=#~/\\-]", replacement = " ")
+
+# remove whitespace
 dblogs = tm_map(dblogs, stripWhitespace)
 ```
+```{r}
+#find word that used at the beginning of Sentences
+function startWord(sentence) {
+    
+}
 
+
+```
 
 ```{r cache=TRUE}
 news = readLines('./final/en_US/en_US.news.txt', encoding = 'UTF-8')
