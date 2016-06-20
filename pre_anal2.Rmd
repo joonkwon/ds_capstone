@@ -17,13 +17,26 @@ library(ggplot2)
 To make data cleaning easier, we sample texts from documents - 1% for blog and twitter, 5% for news.
 
 ```{r cache=TRUE}
-blogs = readLines('./final/en_US/en_US.blogs.txt', encoding = 'UTF-8')
+blogs = readLines('./final - Copy/en_US/en_US.blogs.txt')
 set.seed(465)
 blogs <- sample(blogs, round(length(blogs)/100))
-writeLines(blogs, con="./final/en_US/en_US.blogs.sample.txt", sep="\n")
+writeLines(blogs, con="./final - Copy/en_US/en_US.blogs.sample.txt", sep="\n")
+
+news = readLines('./final - Copy/en_US/en_US.news.txt')
+set.seed(567)
+blogs <- sample(blogs, round(length(news)/100))
+writeLines(news, con="./final - Copy/en_US/en_US.news.sample.txt", sep="\n")
+
+twitter = readLines('./final - Copy/en_US/en_US.twitter.txt')
+set.seed(678)
+twitter<- sample(twitter, round(length(twitter)/100))
+writeLines(twitter, con="./final - Copy/en_US/en_US.twitter.sample.txt", sep="\n")
+
+
+
 #below will concatenate all lines (multi length character vector) to one line character vector
 #blogs <- paste(blogs, sep="", collapse=" ")
-docs_blog <- Corpus(VectorSource(blogs))
+#docs_blog <- Corpus(VectorSource(blogs))
 ```
 
 ```{r}
