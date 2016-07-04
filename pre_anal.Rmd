@@ -36,7 +36,12 @@ toSpace = content_transformer(function(x, pattern) { return (gsub(pattern, ' ', 
 replace ':' and '-' with space using above toSpace content transformer
 ```{r cache=TRUE}
 #docs = tm_map(docs, toSpace, ':')
-#docs = tm_map(docs, toSpace, '-')
+docs = tm_map(docs, toSpace, '-')
+docs = tm_map(docs, toSpace, '-')
+docs = tm_map(docs, toSpace, '-')
+docs = tm_map(docs, toSpace, '"')
+docs = tm_map(docs, toSpace, '"') 
+docs = tm_map(docs, toSpace, "' ") 
 #docs = tm_map(docs, toSpace, '?')
 #docs = tm_map(docs, toSpace, '.')
 #docs = tm_map(docs, toSpace, ';')

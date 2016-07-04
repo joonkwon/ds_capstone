@@ -1,0 +1,162 @@
+---
+title: "sw_pred"
+author: "Joohyun Kwon"
+date: "June 30, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(tm)
+library(ggplot2)
+library(knitr)
+library(qdap)
+library(RWeka)
+library(wordcloud)
+library(stringi)
+```
+
+```{r}
+#file_dir = "./samples"
+file_dir = "./final/en_US"
+```
+
+```{r}
+qdap_clean = function(x) {
+    # x is character vector
+    #replace utf single quote to ascii single quote (for apostrophe)
+    x = gsub("\u2019", "\u0027", x)
+    #remove all the non-alphabets and single quote. We did this before removing contraction 
+    #because some non ascii character throw errors
+    x = gsub("[^a-zA-Z\u0027]", " ", x)
+    x = replace_contraction(x)
+    x = replace_abbreviation(x)
+    # remove single quote completely
+    x = gsub("\u0027", " ", x)
+    x = tolower(x)
+    return(x)
+}
+```
+
+```{r}
+toSpace = content_transformer(function(x, pattern) { return (gsub(pattern, ' ', x))})
+
+tm_clean = function(x){
+    #x is a corpus
+    x <- tm_map(x, stripWhitespace)
+    x = tm_map(x, toSpace, ' [^iIaA] ')
+    x = tm_map(x, toSpace, '^[^iIaA] ')
+    x = tm_map(x, toSpace, ' [^iIaA]$')
+    x <- tm_map(x, stripWhitespace)
+#    x <- tm_map(x, tolower) #tolower throw error
+    return(x)
+}
+```
+
+```{r cache = TRUE}
+docs = Corpus(DirSource(file_dir, encoding='UTF-8' ))
+```
+
+###Words and Lines Count of Each Document
+
+```{r echo=FALSE}
+ln = length(docs)
+filenames = vector(mode="character",ln)
+wordsCount = vector(mode="numeric",ln)
+linesCount = vector(mode="numeric",ln)
+
+for (i in 1:ln){
+    filenames[i] = docs[[i]]$meta$id
+}
+for (i in 1:ln){
+    linesCount[i] = length(docs[[i]]$content)
+}
+
+for (i in 1:ln){
+    
+    wordsCount[i] = stri_stats_latex(docs[[i]]$content)["Words"]
+}
+
+simpleStat = data.frame(filenames, linesCount, wordsCount)
+kable(simpleStat, col.names = c("Filename", "Lines Count", "Words Count"))
+```
+
+
+
+##Cleaning Text and Creating Corpus
+```{r cache = TRUE}
+for (i in 1:length(docs)) {
+    docs[[i]]$content = qdap_clean(docs[[i]]$content)
+}
+
+docs = tm_clean(docs)
+```
+```{r}
+saveRDS(docs, "corpus_sample.RDS")
+```
+
+```{r cache = TRUE}
+dtm = DocumentTermMatrix(docs)
+
+saveRDS(dtm, "dtm_sample.RDS")
+```
+
+
+##20 Most Frequent Words
+```{r}
+freq = colSums(as.matrix(dtm))
+freq_ord = sort(freq, decreasing = TRUE)
+barplot(freq_ord[1:20], col='tan', las=2)
+```
+
+##Wordcloud
+
+```{r}
+wordcloud(names(freq), freq, max.words = 100, colors = brewer.pal(8,"Dark2"),
+          random.color = TRUE)
+```
+
+```{r}
+tokenizer_bigram = function(x) {
+    NGramTokenizer(x, Weka_control(min =2, max=2))
+}
+
+tokenizer_trigram = function(x) {
+    NGramTokenizer(x, Weka_control(min =3, max=3))
+}
+
+tokenizer_quadgram = function(x) {
+    NGramTokenizer(x, Weka_control(min =4, max=4))
+}
+```
+```{r cache=TRUE}
+dtm_bi = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_bigram))
+
+dtm_tri = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_trigram))
+
+dtm_quad = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_quadgram))
+```
+
+##20 Most Frequent Bigrams
+```{r}
+freq_bi = colSums(as.matrix(dtm_bi))
+freq_bi = sort(freq_bi, decreasing = TRUE)
+freq_bi[1:20]
+```
+
+##20 Most Frequent Trigrams
+```{r}
+freq_tri = colSums(as.matrix(dtm_tri))
+freq_tri = sort(freq_tri, decreasing = TRUE)
+freq_tri[1:20]
+```
+
+##20 Most Frequent Quadgrams
+```{r}
+freq_quad = colSums(as.matrix(dtm_quad))
+freq_quad = sort(freq_quad, decreasing = TRUE)
+freq_quad[1:20]
+```
+

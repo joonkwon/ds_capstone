@@ -1,3 +1,8 @@
 final/
 pre_anal_cache/
-
+*.RDS
+sw_pred_files/
+sw_pred_cache/
+samples/
+*.RData
+*.Rhistory
