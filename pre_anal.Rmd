@@ -16,14 +16,7 @@ library(ggplot2)
 
 Create Corpus
 ```{r cache=TRUE}
-docs = Corpus(DirSource("./final/en_US", encoding = 'UTF-8'))
-```
-
-removing punctuaton. will manually remove one by one. or find a way to remove in bulk. I would like to keep "'" in "don't", "I've", etc.
-```{r cache=TRUE}
-docs = tm_map(docs, removePunctuation)
-docs = tm_map(docs, removeNumbers)
-#docs = tm_map(docs, content_transformer(tolower))
+docs = Corpus(DirSource("./final/en_US"))
 ```
 
 
@@ -35,6 +28,7 @@ toSpace = content_transformer(function(x, pattern) { return (gsub(pattern, ' ', 
 
 replace ':' and '-' with space using above toSpace content transformer
 ```{r cache=TRUE}
+
 #docs = tm_map(docs, toSpace, ':')
 docs = tm_map(docs, toSpace, '-')
 docs = tm_map(docs, toSpace, '-')
@@ -47,8 +41,17 @@ docs = tm_map(docs, toSpace, "' ")
 #docs = tm_map(docs, toSpace, ';')
 #docs = tm_map(docs, toSpace, ')')
 #docs = tm_map(docs, toSpace, '(')
+
+docs = tm_map(docs, toSpace, '[^a-zA-Z]')
 ```
 
+
+removing punctuaton. will manually remove one by one. or find a way to remove in bulk. I would like to keep "'" in "don't", "I've", etc.
+```{r cache=TRUE}
+docs = tm_map(docs, removePunctuation)
+docs = tm_map(docs, removeNumbers)
+docs = tm_map(docs, content_transformer(tolower))
+```
 
 ```{r cache=TRUE}
 
