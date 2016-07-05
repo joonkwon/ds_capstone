@@ -19,7 +19,7 @@ library(stringi)
 ```
 
 ```{r}
-SAMPLE_MODE = FALSE
+SAMPLE_MODE = TRUE
 ```
 
 Sample Training/Testing Data to 90%, 10%
@@ -45,12 +45,12 @@ if (!file.exists(file.path(file_dir_train, "en_US.twitter.txt")) |
         set.seed(1005)
         train_idx =sample(all_idx, document_length * 0.9)
         train = corpus[[i]]$content[train_idx]
-        test = corpus[[i]]$content[train_idx]
+        test = corpus[[i]]$content[-train_idx]
         train = train[!is.na(train)]
         test = test[!is.na(test)]
         write(train, file.path(file_dir_train, document_filename))
         write(test, file.path(file_dir_test, document_filename))
-        rm(test,train, train_idx)
+        rm(test,train, train_idx, all_idx)
     }    
     rm(corpus)
 }
