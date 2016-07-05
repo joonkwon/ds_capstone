@@ -44,8 +44,8 @@ if (!file.exists(file.path(file_dir_train, "en_US.twitter.txt")) |
         all_idx = 1:document_length
         set.seed(1005)
         train_idx =sample(all_idx, document_length * 0.9)
-        train = corpus[[1]]$content[train_idx]
-        test = corpus[[1]]$content[train_idx]
+        train = corpus[[i]]$content[train_idx]
+        test = corpus[[i]]$content[train_idx]
         train = train[!is.na(train)]
         test = test[!is.na(test)]
         write(train, file.path(file_dir_train, document_filename))
@@ -72,7 +72,7 @@ if (!file.exists(file.path(file_dir_sample, "en_US.twitter.txt")) |
         all_idx = 1:document_length
         set.seed(2005)
         sample_idx =sample(all_idx, document_length * 0.01)
-        sample_docs = corpus[[1]]$content[sample_idx]
+        sample_docs = corpus[[i]]$content[sample_idx]
         sample_docs = sample_docs[!is.na(sample_docs)]
         write(sample_docs, file.path(file_dir_sample, document_filename))
         rm(sample_docs, sample_idx, all_idx)
