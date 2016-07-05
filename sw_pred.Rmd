@@ -19,15 +19,83 @@ library(stringi)
 ```
 
 ```{r}
-#file_dir = "./samples"
-file_dir = "./final/en_US"
+SAMPLE_MODE = FALSE
 ```
+
+Sample Training/Testing Data to 90%, 10%
+
+```{r}
+file_dir = "./final/en_US"
+
+file_dir_train = "./final/en_US/training"
+file_dir_test = "./final/en_US/testing"
+
+ifelse(!dir.exists(file_dir_train), dir.create(file_dir_train), FALSE)
+ifelse(!dir.exists(file_dir_test), dir.create(file_dir_test), FALSE)
+
+if (!file.exists(file.path(file_dir_train, "en_US.twitter.txt")) |
+    !file.exists(file.path(file_dir_train, "en_US.news.txt")) |
+    !file.exists(file.path(file_dir_train, "en_US.blogs.txt")) ) 
+{
+    corpus = Corpus(DirSource(file_dir, encoding='UTF-8' ))
+    for (i in 1:length(corpus)) {
+        document_filename = corpus[[i]]$meta$id
+        document_length = length(corpus[[i]]$content)
+        all_idx = 1:document_length
+        set.seed(1005)
+        train_idx =sample(all_idx, document_length * 0.9)
+        train = corpus[[1]]$content[train_idx]
+        test = corpus[[1]]$content[train_idx]
+        train = train[!is.na(train)]
+        test = test[!is.na(test)]
+        write(train, file.path(file_dir_train, document_filename))
+        write(test, file.path(file_dir_test, document_filename))
+        rm(test,train, train_idx)
+    }    
+    rm(corpus)
+}
+```
+Create a small set of data to efficiently write code
+```{r}
+file_dir_sample = './final/en_US/sample'
+ifelse(!dir.exists(file_dir_sample), dir.create(file_dir_sample), FALSE)
+if (!file.exists(file.path(file_dir_sample, "en_US.twitter.txt")) |
+    !file.exists(file.path(file_dir_sample, "en_US.news.txt")) |
+    !file.exists(file.path(file_dir_sample, "en_US.blogs.txt")) ) 
+{
+    corpus = Corpus(DirSource(file_dir_train, encoding='UTF-8' ),
+                    readerControl=list(language="en"))
+    
+    for (i in 1:length(corpus)) {
+        document_filename = corpus[[i]]$meta$id
+        document_length = length(corpus[[i]]$content)
+        all_idx = 1:document_length
+        set.seed(2005)
+        sample_idx =sample(all_idx, document_length * 0.01)
+        sample_docs = corpus[[1]]$content[sample_idx]
+        sample_docs = sample_docs[!is.na(sample_docs)]
+        write(sample_docs, file.path(file_dir_sample, document_filename))
+        rm(sample_docs, sample_idx, all_idx)
+    }  
+    rm(corpus)
+}
+```
+
+```{r}
+if (SAMPLE_MODE) { file_dir = './final/en_US/sample' }
+```
+
 
 ```{r}
 qdap_clean = function(x) {
     # x is character vector
     #replace utf single quote to ascii single quote (for apostrophe)
     x = gsub("\u2019", "\u0027", x)
+    x = gsub("<92>", "\u0027", x)
+    #mark End of Sentence
+    x = gsub("\\. |\\.$", " EEEOSSS ", x)
+    x = gsub("\\! |\\!$", " EEEOSSS ", x)
+    x = gsub("\\? |\\?$", " EEEOSSS ", x)
     #remove all the non-alphabets and single quote. We did this before removing contraction 
     #because some non ascii character throw errors
     x = gsub("[^a-zA-Z\u0027]", " ", x)
@@ -36,6 +104,9 @@ qdap_clean = function(x) {
     # remove single quote completely
     x = gsub("\u0027", " ", x)
     x = tolower(x)
+    
+    print("gdap_clean one loop completed")
+    
     return(x)
 }
 ```
@@ -51,6 +122,9 @@ tm_clean = function(x){
     x = tm_map(x, toSpace, ' [^iIaA]$')
     x <- tm_map(x, stripWhitespace)
 #    x <- tm_map(x, tolower) #tolower throw error
+    
+    print("tm_clean completed")
+    
     return(x)
 }
 ```
@@ -86,7 +160,7 @@ kable(simpleStat, col.names = c("Filename", "Lines Count", "Words Count"))
 
 
 ##Cleaning Text and Creating Corpus
-```{r cache = TRUE}
+```{r text_clean, cache = TRUE}
 for (i in 1:length(docs)) {
     docs[[i]]$content = qdap_clean(docs[[i]]$content)
 }
@@ -97,28 +171,7 @@ docs = tm_clean(docs)
 saveRDS(docs, "corpus_sample.RDS")
 ```
 
-```{r cache = TRUE}
-dtm = DocumentTermMatrix(docs)
-
-saveRDS(dtm, "dtm_sample.RDS")
-```
-
-
-##20 Most Frequent Words
-```{r}
-freq = colSums(as.matrix(dtm))
-freq_ord = sort(freq, decreasing = TRUE)
-barplot(freq_ord[1:20], col='tan', las=2)
-```
-
-##Wordcloud
-
-```{r}
-wordcloud(names(freq), freq, max.words = 100, colors = brewer.pal(8,"Dark2"),
-          random.color = TRUE)
-```
-
-```{r}
+```{r helper_fucntion}
 tokenizer_bigram = function(x) {
     NGramTokenizer(x, Weka_control(min =2, max=2))
 }
@@ -130,33 +183,105 @@ tokenizer_trigram = function(x) {
 tokenizer_quadgram = function(x) {
     NGramTokenizer(x, Weka_control(min =4, max=4))
 }
+
+tokenizer_quintgram = function(x) {
+    NGramTokenizer(x, Weka_control(min =5, max=5))
+}
+
+removeEOS = function(x) {
+    EOS_idx = grepl("eeeosss", colnames(x))
+    x = x[,!EOS_idx]
+    return(x)
+}
 ```
-```{r cache=TRUE}
+
+
+```{r cache = TRUE}
+dtm_uni = DocumentTermMatrix(docs)
+
+saveRDS(dtm_uni, "dtm_uni.RDS")
+```
+
+
+##20 Most Frequent Words
+```{r}
+dtm_uni_m = as.matrix(dtm_uni)
+dtm_uni_m = removeEOS(dtm_uni_m)
+rm(dtm_uni) # delete to save memory
+
+
+```
+
+```{r}
+freq = colSums(dtm_uni_m)
+freq_ord = sort(freq, decreasing = TRUE)
+barplot(freq_ord[1:20], col='tan', las=2)
+```
+
+##Wordcloud
+
+```{r}
+wordcloud(names(freq), freq, max.words = 100, colors = brewer.pal(8,"Dark2"),
+          random.color = TRUE)
+```
+
+
+```{r dtm_bi, cache=TRUE}
 dtm_bi = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_bigram))
+saveRDS(dtm_bi,"dtm_bi.RDS")
+dtm_bi_m = as.matrix(dtm_bi)
+dtm_bi_m = removeEOS(dtm_bi_m)
+rm(dtm_bi)
+```
 
+```{r dtm_tri, cache=TRUE}
 dtm_tri = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_trigram))
+saveRDS(dtm_tri, "dtm_tri.RDS")
+dtm_tri_m = as.matrix(dtm_tri)
+dtm_tri_m = removeEOS(dtm_tri_m)
+rm(dtm_tri)
+```
 
+```{r dtm_quad, cache=TRUE}
 dtm_quad = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_quadgram))
+saveRDS(dtm_quad, "dtm_quad.RDS")
+dtm_quad_m = as.matrix(dtm_quad)
+dtm_quad_m = removeEOS(dtm_quad_m)
+rm(dtm_quad)
+```
+
+```{r dtm_quint, cache=TRUE}
+dtm_quint = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_quintgram))
+saveRDS(dtm_quint, "dtm_quint.RDS")
+dtm_quint_m = as.matrix(dtm_quint)
+dtm_quint_m = removeEOS(dtm_quint_m)
+rm(dtm_quint)
 ```
 
 ##20 Most Frequent Bigrams
 ```{r}
-freq_bi = colSums(as.matrix(dtm_bi))
+freq_bi = colSums(dtm_bi_m)
 freq_bi = sort(freq_bi, decreasing = TRUE)
 freq_bi[1:20]
 ```
 
 ##20 Most Frequent Trigrams
 ```{r}
-freq_tri = colSums(as.matrix(dtm_tri))
+freq_tri = colSums(dtm_tri_m)
 freq_tri = sort(freq_tri, decreasing = TRUE)
 freq_tri[1:20]
 ```
 
 ##20 Most Frequent Quadgrams
 ```{r}
-freq_quad = colSums(as.matrix(dtm_quad))
+freq_quad = colSums(dtm_quad_m)
 freq_quad = sort(freq_quad, decreasing = TRUE)
 freq_quad[1:20]
 ```
 
+##20 Most Frequent Quintgrams
+```{r}
+freq_quint = colSums(dtm_quint_m)
+freq_quint = sort(freq_quint, decreasing = TRUE)
+freq_quint[1:20]
+```
