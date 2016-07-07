@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+options(java.parameters = "-Xmx12000m")
 library(tm)
 library(ggplot2)
 library(knitr)
@@ -19,7 +20,7 @@ library(stringi)
 ```
 
 ```{r}
-SAMPLE_MODE = TRUE
+SAMPLE_MODE = FALSE
 ```
 
 Sample Training/Testing Data to 90%, 10%
@@ -195,19 +196,16 @@ removeEOS = function(x) {
 }
 ```
 
-
+##20 Most Frequent Words
 ```{r cache = TRUE}
 dtm_uni = DocumentTermMatrix(docs)
 
 saveRDS(dtm_uni, "dtm_uni.RDS")
-```
 
-
-##20 Most Frequent Words
-```{r}
 dtm_uni_m = as.matrix(dtm_uni)
-dtm_uni_m = removeEOS(dtm_uni_m)
 rm(dtm_uni) # delete to save memory
+dtm_uni_m = removeEOS(dtm_uni_m)
+saveRDS(dtm_uni_m, "dtm_uni_m.RDS")
 
 
 ```
@@ -230,8 +228,10 @@ wordcloud(names(freq), freq, max.words = 100, colors = brewer.pal(8,"Dark2"),
 dtm_bi = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_bigram))
 saveRDS(dtm_bi,"dtm_bi.RDS")
 dtm_bi_m = as.matrix(dtm_bi)
-dtm_bi_m = removeEOS(dtm_bi_m)
 rm(dtm_bi)
+dtm_bi_m = removeEOS(dtm_bi_m)
+saveRDS(dtm_bi_m,"dtm_bi_m.RDS")
+
 ```
 
 ```{r dtm_tri, cache=TRUE}
@@ -246,8 +246,9 @@ rm(dtm_tri)
 dtm_quad = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_quadgram))
 saveRDS(dtm_quad, "dtm_quad.RDS")
 dtm_quad_m = as.matrix(dtm_quad)
-dtm_quad_m = removeEOS(dtm_quad_m)
 rm(dtm_quad)
+dtm_quad_m = removeEOS(dtm_quad_m)
+saveRDS(dtm_quad_m "dtm_quad_m.RDS")
 ```
 
 ```{r dtm_quint, cache=TRUE}
