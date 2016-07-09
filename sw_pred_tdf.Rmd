@@ -1,5 +1,5 @@
 ---
-title: "sw_pred"
+title: "sw_pred_tdf"
 author: "Joohyun Kwon"
 date: "June 30, 2016"
 output: html_document
@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-options(java.parameters = "-Xmx24000m")
+options(java.parameters = "-Xmx18000m")
 library(tm)
 library(ggplot2)
 library(knitr)
@@ -169,7 +169,7 @@ for (i in 1:length(docs)) {
 docs = tm_clean(docs)
 ```
 ```{r}
-saveRDS(docs, "corpus_sample.RDS")
+saveRDS(docs, "corpus_tdf.RDS")
 ```
 
 ```{r helper_fucntion}
@@ -187,8 +187,8 @@ tokenizer_quadgram = function(x) {
 
 
 removeEOS = function(x) {
-    EOS_idx = grepl("eeeosss", colnames(x))
-    x = x[,!EOS_idx]
+    EOS_idx = grepl("eeeosss", rownames(x))
+    x = x[!EOS_idx,]
     return(x)
 }
 ```
