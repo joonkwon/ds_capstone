@@ -195,20 +195,20 @@ removeEOS = function(x) {
 
 ##20 Most Frequent Words
 ```{r cache = TRUE}
-dtm_uni = DocumentTermMatrix(docs)
+tdm_uni = TermDocumentMatrix(docs)
 
-saveRDS(dtm_uni, "dtm_uni.RDS")
+saveRDS(tdm_uni, "tdm_uni.RDS")
 
-dtm_uni_m = as.matrix(dtm_uni)
-rm(dtm_uni) # delete to save memory
-dtm_uni_m = removeEOS(dtm_uni_m)
-saveRDS(dtm_uni_m, "dtm_uni_m.RDS")
+tdm_uni_m = as.matrix(tdm_uni)
+rm(tdm_uni) # delete to save memory
+tdm_uni_m = removeEOS(tdm_uni_m)
+saveRDS(tdm_uni_m, "tdm_uni_m.RDS")
 
 
 ```
 
 ```{r}
-freq = colSums(dtm_uni_m)
+freq = colSums(tdm_uni_m)
 freq_ord = sort(freq, decreasing = TRUE)
 barplot(freq_ord[1:20], col='tan', las=2)
 ```
@@ -221,56 +221,56 @@ wordcloud(names(freq), freq, max.words = 100, colors = brewer.pal(8,"Dark2"),
 ```
 
 
-```{r dtm_bi, cache=TRUE}
-dtm_bi = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_bigram))
-saveRDS(dtm_bi,"dtm_bi.RDS")
-dtm_bi_m = as.matrix(dtm_bi)
-rm(dtm_bi)
-dtm_bi_m = removeEOS(dtm_bi_m)
-saveRDS(dtm_bi_m,"dtm_bi_m.RDS")
+```{r tdm_bi, cache=TRUE}
+tdm_bi = TermDocumentMatrix(docs, control = list(tokenize=tokenizer_bigram))
+saveRDS(tdm_bi,"tdm_bi.RDS")
+tdm_bi_m = as.matrix(tdm_bi)
+rm(tdm_bi)
+tdm_bi_m = removeEOS(tdm_bi_m)
+saveRDS(tdm_bi_m,"tdm_bi_m.RDS")
 
 ```
 
 ##20 Most Frequent Bigrams
 ```{r}
-freq_bi = colSums(dtm_bi_m)
-rm(dtm_bi_m)
+freq_bi = colSums(tdm_bi_m)
+rm(tdm_bi_m)
 freq_bi = sort(freq_bi, decreasing = TRUE)
 freq_bi[1:20]
 ```
 
 
-```{r dtm_tri, cache=TRUE}
-dtm_tri = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_trigram))
-saveRDS(dtm_tri, "dtm_tri.RDS")
-dtm_tri_m = as.matrix(dtm_tri)
-dtm_tri_m = removeEOS(dtm_tri_m)
-rm(dtm_tri)
-saveRDS(dtm_tri_m, "dtm_tri_m.RDS")
+```{r tdm_tri, cache=TRUE}
+tdm_tri = TermDocumentMatrix(docs, control = list(tokenize=tokenizer_trigram))
+saveRDS(tdm_tri, "tdm_tri.RDS")
+tdm_tri_m = as.matrix(tdm_tri)
+tdm_tri_m = removeEOS(tdm_tri_m)
+rm(tdm_tri)
+saveRDS(tdm_tri_m, "tdm_tri_m.RDS")
 ```
 
 ##20 Most Frequent Trigrams
 ```{r}
-freq_tri = colSums(dtm_tri_m)
-rm(dtm_tri_m)
+freq_tri = colSums(tdm_tri_m)
+rm(tdm_tri_m)
 freq_tri = sort(freq_tri, decreasing = TRUE)
 freq_tri[1:20]
 ```
 
-```{r dtm_quad, cache=TRUE}
-dtm_quad = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_quadgram))
-saveRDS(dtm_quad, "dtm_quad.RDS")
-dtm_quad_m = as.matrix(dtm_quad)
-rm(dtm_quad)
-dtm_quad_m = removeEOS(dtm_quad_m)
-saveRDS(dtm_quad_m, "dtm_quad_m.RDS")
+```{r tdm_quad, cache=TRUE}
+tdm_quad = TermDocumentMatrix(docs, control = list(tokenize=tokenizer_quadgram))
+saveRDS(tdm_quad, "tdm_quad.RDS")
+tdm_quad_m = as.matrix(tdm_quad)
+rm(tdm_quad)
+tdm_quad_m = removeEOS(tdm_quad_m)
+saveRDS(tdm_quad_m, "tdm_quad_m.RDS")
 ```
 
 
 ##20 Most Frequent Quadgrams
 ```{r}
-freq_quad = colSums(dtm_quad_m)
-rm(dtm_quad_m)
+freq_quad = colSums(tdm_quad_m)
+rm(tdm_quad_m)
 freq_quad = sort(freq_quad, decreasing = TRUE)
 freq_quad[1:20]
 ```
