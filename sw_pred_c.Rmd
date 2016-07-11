@@ -1,5 +1,5 @@
 ---
-title: "sw_pred"
+title: "sw_pred_c"
 author: "Joohyun Kwon"
 date: "June 30, 2016"
 output: html_document
