@@ -20,7 +20,8 @@ library(stringi)
 ```
 
 ```{r}
-SAMPLE_MODE = FALSE
+setwd('~/github/ds_capstone')
+SAMPLE_MODE = TRUE
 ```
 
 Sample Training/Testing Data to 90%, 10%
@@ -83,7 +84,11 @@ if (!file.exists(file.path(file_dir_sample, "en_US.twitter.txt")) |
 ```
 
 ```{r}
-if (SAMPLE_MODE) { file_dir = './final/en_US/sample' }
+if (SAMPLE_MODE) { 
+  ifelse(!dir.exists('./sample_wk'), dir.create('./sample_wk'), FALSE)
+  setwd('./sample_wk')
+  file_dir = '../final/en_US/sample' 
+}
 ```
 
 
@@ -91,9 +96,8 @@ if (SAMPLE_MODE) { file_dir = './final/en_US/sample' }
 qdap_clean = function(x) {
     # x is character vector
     #replace utf single quote to ascii single quote (for apostrophe)
-    #x = gsub("\u2019", "\u0027", x)
+    x = gsub("\u2019", "\u0027", x)
     x = gsub("<92>", "\u0027", x)
-    x = replace_abbreviation(x)
     #mark End of Sentence
     x = gsub("\\. |\\.$", " EEEOSSS ", x)
     x = gsub("\\! |\\!$", " EEEOSSS ", x)
@@ -101,10 +105,10 @@ qdap_clean = function(x) {
     #remove all the non-alphabets and single quote. We did this before removing contraction 
     #because some non ascii character throw errors
     x = gsub("[^a-zA-Z\u0027]", " ", x)
-    #x = replace_contraction(x)
-
+    x = replace_contraction(x)
+    x = replace_abbreviation(x)
     # remove single quote completely
-    #x = gsub("\u0027", " ", x)
+    x = gsub("\u0027", " ", x)
     x = tolower(x)
     
     print("gdap_clean one loop completed")
