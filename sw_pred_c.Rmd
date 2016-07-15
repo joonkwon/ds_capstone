@@ -184,21 +184,21 @@ docs = tm_clean(docs)
 Sys.time()
 ```
 ```{r}
-saveRDS(docs, file.path(wk_dir, "corpus_sample.RDS"))
+saveRDS(docs, file.path(wk_dir, "corpus_docs.RDS"))
 ```
 
 ```{r helper_fucntion}
 tokenizer_bigram = function(x) {
-    NGramTokenizer(x, Weka_control(min =2, max=2))
+    NGramTokenizer(x, Weka_control(min =2, max=2, delimiters=' \r\n\t'))
 }
 
 tokenizer_trigram = function(x) {
-    NGramTokenizer(x, Weka_control(min =3, max=3))
+    NGramTokenizer(x, Weka_control(min =3, max=3, delimiters=' \r\n\t'))
 }
 
-tokenizer_quadgram = function(x) {
-    NGramTokenizer(x, Weka_control(min =4, max=4))
-}
+# tokenizer_quadgram = function(x) {
+#     NGramTokenizer(x, Weka_control(min =4, max=4))
+# }
 
 
 removeEOS = function(x) {
@@ -246,6 +246,7 @@ wordcloud(names(freq_uni), freq_uni, max.words = 100, colors = brewer.pal(8,"Dar
 
 ##20 Most Frequent 2-grams
 ```{r dtm_bi, cache=TRUE}
+Sys.time()
 freq_bi = vector()
 freq_bi = readRDS(file.path(wk_dir,"freq_bi.RDS"))
 if (length(freq_bi) == 0) {
@@ -260,6 +261,7 @@ if (length(freq_bi) == 0) {
 }
 
 freq_bi[1:20]
+Sys.time()
 ```
 
 
