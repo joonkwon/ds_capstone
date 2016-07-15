@@ -20,7 +20,7 @@ library(stringi)
 ```
 
 ```{r}
-SAMPLE_MODE = FALSE
+SAMPLE_MODE = TRUE
 ```
 
 Sample Training/Testing Data to 90%, 10%
@@ -30,9 +30,14 @@ file_dir = "./final/en_US"
 
 file_dir_train = "./final/en_US/training"
 file_dir_test = "./final/en_US/testing"
+wk_dir_train = "./wk_dir_train"
+wk_dir_sample = "./wk_dir_sample"
 
 ifelse(!dir.exists(file_dir_train), dir.create(file_dir_train), FALSE)
 ifelse(!dir.exists(file_dir_test), dir.create(file_dir_test), FALSE)
+
+ifelse(!dir.exists(wk_dir_train), dir.create(wk_dir_train), FALSE)
+ifelse(!dir.exists(wk_dir_sample), dir.create(wk_dir_sample), FALSE)
 
 if (!file.exists(file.path(file_dir_train, "en_US.twitter.txt")) |
     !file.exists(file.path(file_dir_train, "en_US.news.txt")) |
@@ -83,7 +88,12 @@ if (!file.exists(file.path(file_dir_sample, "en_US.twitter.txt")) |
 ```
 
 ```{r}
-if (SAMPLE_MODE) { file_dir = './final/en_US/sample' }
+file_dir = file_dir_train
+wk_dir = wk_dir_train
+if (SAMPLE_MODE) { 
+  file_dir = './final/en_US/sample' 
+  wk_dir = wk_dir_sample
+}
 ```
 
 
@@ -132,7 +142,9 @@ tm_clean = function(x){
 ```
 
 ```{r cache = TRUE}
+Sys.time()
 docs = Corpus(DirSource(file_dir, encoding='UTF-8' ))
+Sys.time()
 ```
 
 ###Words and Lines Count of Each Document
@@ -163,14 +175,16 @@ kable(simpleStat, col.names = c("Filename", "Lines Count", "Words Count"))
 
 ##Cleaning Text and Creating Corpus
 ```{r text_clean, cache = TRUE}
+Sys.time()
 for (i in 1:length(docs)) {
     docs[[i]]$content = qdap_clean(docs[[i]]$content)
 }
 
 docs = tm_clean(docs)
+Sys.time()
 ```
 ```{r}
-saveRDS(docs, "corpus_sample.RDS")
+saveRDS(docs, file.path(wk_dir, "corpus_sample.RDS"))
 ```
 
 ```{r helper_fucntion}
@@ -196,10 +210,16 @@ removeEOS = function(x) {
 
 ```
 
+```{r}
+Sys.time()
+dtm_uni = DocumentTermMatrix(docs)
+Sys.time()
+```
+
 ##20 Most Frequent Words
 ```{r dtm_uni, cache = TRUE}
 freq_uni = vector()
-freq_uni = readRDS("freq_uni.RDS")
+freq_uni = readRDS(file.path(wk_dir,"freq_uni.RDS"))
 
 if (length(freq_uni) == 0) {
   dtm_uni = DocumentTermMatrix(docs)
@@ -208,7 +228,7 @@ if (length(freq_uni) == 0) {
   dtm_uni_m = removeEOS(dtm_uni_m)
   freq_uni = colSums(dtm_uni_m)
   freq_uni = sort(freq_uni, decreasing = TRUE)
-  saveRDS(freq_uni, "freq_uni.RDS")
+  saveRDS(freq_uni, file.path(wk_dir,"freq_uni.RDS"))
 }
 
 ```
@@ -227,7 +247,7 @@ wordcloud(names(freq_uni), freq_uni, max.words = 100, colors = brewer.pal(8,"Dar
 ##20 Most Frequent 2-grams
 ```{r dtm_bi, cache=TRUE}
 freq_bi = vector()
-freq_bi = readRDS("freq_bi.RDS")
+freq_bi = readRDS(file.path(wk_dir,"freq_bi.RDS"))
 if (length(freq_bi) == 0) {
   dtm_bi = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_bigram))
   dtm_bi_m = as.matrix(dtm_bi)
@@ -236,7 +256,7 @@ if (length(freq_bi) == 0) {
   freq_bi = colSums(dtm_bi_m)
   rm(dtm_bi_m)
   freq_bi = sort(freq_bi, decreasing = TRUE)
-  saveRDS(freq_bi, "freq_bi.RDS")
+  saveRDS(freq_bi, file.path(wk_dir,"freq_bi.RDS"))
 }
 
 freq_bi[1:20]
@@ -247,7 +267,7 @@ freq_bi[1:20]
 
 ```{r dtm_tri, cache=TRUE}
 freq_tri = vector()
-freq_tri = readRDS("freq_tri.RDS")
+freq_tri = readRDS(file.path(wk_dir,"freq_tri.RDS"))
 if (length(freq_tri) == 0) {
   dtm_tri = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_trigram))
   dtm_tri_m = as.matrix(dtm_tri)
@@ -256,28 +276,10 @@ if (length(freq_tri) == 0) {
   freq_tri = colSums(dtm_tri_m)
   rm(dtm_tri_m)
   freq_tri = sort(freq_tri, decreasing = TRUE)
-  saveRDS(freq_tri, "freq_tri.RDS")
+  saveRDS(freq_tri, file.path(wk_dir,"freq_tri.RDS"))
 }
 
 freq_tri[1:20]
 ```
 
 
-##20 Most Frequent 4-grams
-```{r dtm_quad}
-freq_quad = vector()
-freq_quad = readRDS("freq_quad.RDS")
-if (length(freq_quad) == 0) {
-  dtm_quad = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_quadgram))
-  dtm_quad_m = as.matrix(dtm_quad)
-  rm(dtm_quad)
-  dtm_quad_m = removeEOS(dtm_quad_m)
-  
-  freq_quad = colSums(dtm_quad_m)
-  rm(dtm_quad_m)
-  freq_quad = sort(freq_quad, decreasing = TRUE)
-  saveRDS(freq_quad, "freq_quad.RDS")
-}
-
-freq_quad[1:20]
-```

@@ -9,3 +9,8 @@ samples/
 final - Copy/
 sw_pred_tdf_cache/
 dtm_freq.db
+sw_pred_c.html
+sw_pred_c_cache/
+sw_pred_c_files/
+wk_dir_sample/
+wk_dir_train/
