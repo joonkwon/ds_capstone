@@ -1,9 +1,18 @@
 ---
-title: "sw_pred_c"
+title: "Milestone Report - Predictive Keyboard Capstone Project"
 author: "Joohyun Kwon"
 date: "June 30, 2016"
 output: html_document
 ---
+#Synopsis
+A smart keyboard like SwiftKey helps people to type better on mobile devices. we will apply data analysis and NLP (Natural Language Process) on data aquired from blogs, news and twitter in order to build a predictive model for typing. When a user type a few words, our program will predict the next word. This will help in building a smart keyboard.  
+
+#Executive Summary
+I present a basic EDA on the data. This will help understand the data. N-gram analysis is also conducted. Our model will be build using N-gram modeling and the roadmap for the model building is discussed too.
+
+#Getting and Cleaning Data
+The course provided the data. I downloaded the data from https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip. Besides English, there are other language data too - French, German and Russian. We will focus on english only. 
+All the cleaning works done using a small sample to speed up the process. English has about 600MB data. Becuase of the size, any data processing will take long time. I sampled only 10% of data to develop proper data cleaning process.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -20,7 +29,8 @@ library(stringi)
 ```
 
 ```{r}
-SAMPLE_MODE = TRUE
+SAMPLE_MODE = FALSE
+DATA_PROCESSED = TRUE
 ```
 
 Sample Training/Testing Data to 90%, 10%
@@ -175,16 +185,19 @@ kable(simpleStat, col.names = c("Filename", "Lines Count", "Words Count"))
 
 ##Cleaning Text and Creating Corpus
 ```{r text_clean, cache = TRUE}
-Sys.time()
-for (i in 1:length(docs)) {
-    docs[[i]]$content = qdap_clean(docs[[i]]$content)
-}
+if (DATA_PROCESSED) {
 
-docs = tm_clean(docs)
-Sys.time()
-```
-```{r}
-saveRDS(docs, file.path(wk_dir, "corpus_docs.RDS"))
+    docs = readRDS(file.path(wk_dir, "corpus_docs.RDS"))
+
+} else {
+
+  for (i in 1:length(docs)) {
+      docs[[i]]$content = qdap_clean(docs[[i]]$content)
+  }
+
+  docs = tm_clean(docs)
+  saveRDS(docs, file.path(wk_dir, "corpus_docs.RDS"))
+}
 ```
 
 ```{r helper_fucntion}
@@ -196,32 +209,22 @@ tokenizer_trigram = function(x) {
     NGramTokenizer(x, Weka_control(min =3, max=3, delimiters=' \r\n\t'))
 }
 
-# tokenizer_quadgram = function(x) {
-#     NGramTokenizer(x, Weka_control(min =4, max=4))
-# }
-
-
 removeEOS = function(x) {
     EOS_idx = grepl("eeeosss", colnames(x))
     x = x[,!EOS_idx]
     return(x)
 }
 
-
 ```
 
-```{r}
-Sys.time()
-dtm_uni = DocumentTermMatrix(docs)
-Sys.time()
-```
+
 
 ##20 Most Frequent Words
 ```{r dtm_uni, cache = TRUE}
 freq_uni = vector()
 freq_uni = readRDS(file.path(wk_dir,"freq_uni.RDS"))
 
-if (length(freq_uni) == 0) {
+if ( length(freq_uni) == 0 | !DATA_PROCESSED ) {
   dtm_uni = DocumentTermMatrix(docs)
   dtm_uni_m = as.matrix(dtm_uni)
   rm(dtm_uni) # delete to save memory
@@ -230,7 +233,6 @@ if (length(freq_uni) == 0) {
   freq_uni = sort(freq_uni, decreasing = TRUE)
   saveRDS(freq_uni, file.path(wk_dir,"freq_uni.RDS"))
 }
-
 ```
 
 ```{r}
@@ -246,10 +248,9 @@ wordcloud(names(freq_uni), freq_uni, max.words = 100, colors = brewer.pal(8,"Dar
 
 ##20 Most Frequent 2-grams
 ```{r dtm_bi, cache=TRUE}
-Sys.time()
 freq_bi = vector()
 freq_bi = readRDS(file.path(wk_dir,"freq_bi.RDS"))
-if (length(freq_bi) == 0) {
+if (length(freq_bi) == 0 | !DATA_PROCESSED ) {
   dtm_bi = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_bigram))
   dtm_bi_m = as.matrix(dtm_bi)
   rm(dtm_bi)
@@ -261,7 +262,6 @@ if (length(freq_bi) == 0) {
 }
 
 freq_bi[1:20]
-Sys.time()
 ```
 
 
@@ -270,7 +270,7 @@ Sys.time()
 ```{r dtm_tri, cache=TRUE}
 freq_tri = vector()
 freq_tri = readRDS(file.path(wk_dir,"freq_tri.RDS"))
-if (length(freq_tri) == 0) {
+if (length(freq_tri) == 0 | !DATA_PROCESSED ) {
   dtm_tri = DocumentTermMatrix(docs, control = list(tokenize=tokenizer_trigram))
   dtm_tri_m = as.matrix(dtm_tri)
   rm(dtm_tri)
@@ -282,6 +282,7 @@ if (length(freq_tri) == 0) {
 }
 
 freq_tri[1:20]
+
 ```
 
 
