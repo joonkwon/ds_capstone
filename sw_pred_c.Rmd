@@ -11,8 +11,9 @@ A smart keyboard like SwiftKey helps people to type better on mobile devices. we
 I present a basic EDA on the data. This will help understand the data. N-gram analysis is also conducted. Our model will be build using N-gram modeling and the roadmap for the model building is discussed too.
 
 #Getting and Cleaning Data
-The course provided the data. I downloaded the data from https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip. Besides English, there are other language data too - French, German and Russian. We will focus on english only. 
-All the cleaning works done using a small sample to speed up the process. English has about 600MB data. Becuase of the size, any data processing will take long time. I sampled only 10% of data to develop proper data cleaning process.
+The course provided the data. The data was downloaded from https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip. Besides English, there are other language data too - French, German and Russian. We will focus on English only. 
+After download, the data were devided to training and testing data. I used only training data to build models and testign data will be used to test the efficacy of the models.
+All the cleaning works has been done using a small sample to speed up the process. English has about 600MB data. Becuase of the size, any data processing will take long time. I sampled only 1% of training data to develop proper data cleaning process.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -33,7 +34,9 @@ SAMPLE_MODE = FALSE
 DATA_PROCESSED = TRUE
 ```
 
-Sample Training/Testing Data to 90%, 10%
+###Devision of Training and Testing Data
+
+I devided the data to Training and Testing set (90% vs. 10%).
 
 ```{r}
 file_dir = "./final/en_US"
@@ -71,7 +74,8 @@ if (!file.exists(file.path(file_dir_train, "en_US.twitter.txt")) |
     rm(corpus)
 }
 ```
-Create a small set of data to efficiently write code
+### Sampling Data
+I create a small set (1%) of sampled data to efficiently run code while developing.
 ```{r}
 file_dir_sample = './final/en_US/sample'
 ifelse(!dir.exists(file_dir_sample), dir.create(file_dir_sample), FALSE)
@@ -106,6 +110,8 @@ if (SAMPLE_MODE) {
 }
 ```
 
+###Data Cleaning
+I treat a word with apostrophe as one word. So contraction is not devided to two words. Also apostrophe in possessive form is kept too. All other special characters and numbers are removed. The end of sentence are marked with an end-of-sentence marker (EEEOSSS). This will later be removed from n-gram.
 
 ```{r}
 qdap_clean = function(x) {
@@ -152,12 +158,11 @@ tm_clean = function(x){
 ```
 
 ```{r cache = TRUE}
-Sys.time()
 docs = Corpus(DirSource(file_dir, encoding='UTF-8' ))
-Sys.time()
 ```
 
 ###Words and Lines Count of Each Document
+There are three documents on the data (blogs, news and twitter). Below are the Line and words counts of each document.
 
 ```{r echo=FALSE}
 ln = length(docs)
@@ -219,7 +224,7 @@ removeEOS = function(x) {
 
 
 
-##20 Most Frequent Words
+#20 Most Frequent Words
 ```{r dtm_uni, cache = TRUE}
 freq_uni = vector()
 freq_uni = readRDS(file.path(wk_dir,"freq_uni.RDS"))
@@ -239,14 +244,14 @@ if ( length(freq_uni) == 0 | !DATA_PROCESSED ) {
 barplot(freq_uni[1:20], col='tan', las=2)
 ```
 
-##Wordcloud
+#Wordcloud
 
 ```{r}
 wordcloud(names(freq_uni), freq_uni, max.words = 100, colors = brewer.pal(8,"Dark2"),
           random.color = TRUE)
 ```
 
-##20 Most Frequent 2-grams
+#20 Most Frequent 2-grams
 ```{r dtm_bi, cache=TRUE}
 freq_bi = vector()
 freq_bi = readRDS(file.path(wk_dir,"freq_bi.RDS"))
@@ -261,7 +266,7 @@ if (length(freq_bi) == 0 | !DATA_PROCESSED ) {
   saveRDS(freq_bi, file.path(wk_dir,"freq_bi.RDS"))
 }
 
-freq_bi[1:20]
+barplot(freq_bi[1:20], col='tan', las=2)
 ```
 
 
@@ -281,8 +286,15 @@ if (length(freq_tri) == 0 | !DATA_PROCESSED ) {
   saveRDS(freq_tri, file.path(wk_dir,"freq_tri.RDS"))
 }
 
-freq_tri[1:20]
+barplot(freq_tri[1:20], col='tan', las=2)
 
 ```
 
+###Fequency Distribution of 1-gram, 2-gram and 3-gram
+```{r}
+#par(mfrow=c(1,3))
+plot(log10(freq_uni))
+plot(log10(freq_bi))
+plot(log10(freq_tri))
+```
 
