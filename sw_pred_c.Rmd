@@ -4,11 +4,14 @@ author: "Joohyun Kwon"
 date: "June 30, 2016"
 output: html_document
 ---
+
 #Synopsis
 A smart keyboard like SwiftKey helps people to type better on mobile devices. we will apply data analysis and NLP (Natural Language Process) on data aquired from blogs, news and twitter in order to build a predictive model for typing. When a user type a few words, our program will predict the next word. This will help in building a smart keyboard.  
 
+
 #Executive Summary
 I present a basic EDA on the data. This will help understand the data. N-gram analysis is also conducted. Our model will be build using N-gram modeling and the roadmap for the model building is discussed too.
+
 
 #Getting and Cleaning Data
 The course provided the data. The data was downloaded from https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip. Besides English, there are other language data too - French, German and Russian. We will focus on English only. 
@@ -34,11 +37,12 @@ SAMPLE_MODE = FALSE
 DATA_PROCESSED = TRUE
 ```
 
+
 ####Devision of Training and Testing Data
 
 I devided the data to Training and Testing set (90% vs. 10%).
 
-```{r}
+```{r message=FALSE}
 file_dir = "./final/en_US"
 
 file_dir_train = "./final/en_US/training"
@@ -74,9 +78,11 @@ if (!file.exists(file.path(file_dir_train, "en_US.twitter.txt")) |
     rm(corpus)
 }
 ```
+
+
 #### Sampling Data
 I create a small set (1%) of sampled data to efficiently run code while developing.
-```{r}
+```{r message=FALSE}
 file_dir_sample = './final/en_US/sample'
 ifelse(!dir.exists(file_dir_sample), dir.create(file_dir_sample), FALSE)
 if (!file.exists(file.path(file_dir_sample, "en_US.twitter.txt")) |
@@ -101,7 +107,7 @@ if (!file.exists(file.path(file_dir_sample, "en_US.twitter.txt")) |
 }
 ```
 
-```{r}
+```{r message=FALSE}
 file_dir = file_dir_train
 wk_dir = wk_dir_train
 if (SAMPLE_MODE) { 
@@ -109,6 +115,7 @@ if (SAMPLE_MODE) {
   wk_dir = wk_dir_sample
 }
 ```
+
 
 ####Words and Lines Count of Each Document
 There are three documents on the data (blogs, news and twitter). Below are the Line and words counts of each document.
@@ -121,7 +128,7 @@ docs = Corpus(DirSource(file_dir, encoding='UTF-8' ))
 ```
 
 Lines and Words counts:
-```{r echo=FALSE}
+```{r}
 ln = length(docs)
 filenames = vector(mode="character",ln)
 wordsCount = vector(mode="numeric",ln)
@@ -212,6 +219,7 @@ if (DATA_PROCESSED) {
 }
 ```
 
+
 #Tokenization and N-Gram
 
 ```{r helper_fucntion}
@@ -254,12 +262,14 @@ if ( length(freq_uni) == 0 | !DATA_PROCESSED ) {
 barplot(freq_uni[1:20], col='tan', las=2)
 ```
 
+
 ####Wordcloud
 
 ```{r}
 wordcloud(names(freq_uni), freq_uni, max.words = 100, colors = brewer.pal(8,"Dark2"),
           random.color = TRUE)
 ```
+
 
 ####20 Most Frequent 2-grams
 Documents are tokenized uing 2-gram tokenizer. 20 most frequent tokens are shown on a bar chart.
@@ -316,6 +326,7 @@ The frequency of more than 2/3 of 2-grams is 1. Below is the frequency distribut
 ```{r}
 plot(log10(freq_bi[1:length(freq_bi)/3]), main = "2-Gram", ylab="log10(frequency)")
 ```
+
 
 ####Top 20% of 3-gram
 The frequency of more than 80% of 3-grams is 1. Below is the frequency distributiton of top 20% of 1-gram.
