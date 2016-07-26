@@ -34,7 +34,7 @@ SAMPLE_MODE = FALSE
 DATA_PROCESSED = TRUE
 ```
 
-###Devision of Training and Testing Data
+####Devision of Training and Testing Data
 
 I devided the data to Training and Testing set (90% vs. 10%).
 
@@ -74,7 +74,7 @@ if (!file.exists(file.path(file_dir_train, "en_US.twitter.txt")) |
     rm(corpus)
 }
 ```
-### Sampling Data
+#### Sampling Data
 I create a small set (1%) of sampled data to efficiently run code while developing.
 ```{r}
 file_dir_sample = './final/en_US/sample'
@@ -110,8 +110,45 @@ if (SAMPLE_MODE) {
 }
 ```
 
-###Data Cleaning
-I treat a word with apostrophe as one word. So contraction is not devided to two words. Also apostrophe in possessive form is kept too. All other special characters and numbers are removed. The end of sentence are marked with an end-of-sentence marker (EEEOSSS). This will later be removed from n-gram.
+####Words and Lines Count of Each Document
+There are three documents on the data (blogs, news and twitter). Below are the Line and words counts of each document.
+
+
+A corpus is created from the directory:
+
+```{r cache = TRUE}
+docs = Corpus(DirSource(file_dir, encoding='UTF-8' ))
+```
+
+Lines and Words counts:
+```{r echo=FALSE}
+ln = length(docs)
+filenames = vector(mode="character",ln)
+wordsCount = vector(mode="numeric",ln)
+linesCount = vector(mode="numeric",ln)
+
+for (i in 1:ln){
+    filenames[i] = docs[[i]]$meta$id
+}
+for (i in 1:ln){
+    linesCount[i] = length(docs[[i]]$content)
+}
+
+for (i in 1:ln){
+    
+    wordsCount[i] = stri_stats_latex(docs[[i]]$content)["Words"]
+}
+
+simpleStat = data.frame(filenames, linesCount, wordsCount)
+kable(simpleStat, col.names = c("Filename", "Lines Count", "Words Count"))
+```
+
+
+####Cleaning Text
+
+A word with apostrophe are treated as one word. That is, a contraction is not devided to two words. Also apostrophe in possessive form is kept too. All other special characters and numbers are removed. The end of sentence are marked with an end-of-sentence marker (EEEOSSS). This will later be removed from n-gram.
+
+Two cleaning functions are defined:
 
 ```{r}
 qdap_clean = function(x) {
@@ -157,38 +194,8 @@ tm_clean = function(x){
 }
 ```
 
-```{r cache = TRUE}
-docs = Corpus(DirSource(file_dir, encoding='UTF-8' ))
-```
+The two fuctions define above are applied to the courpus. The result are serialized and saved to disk using saveRDS function. 
 
-###Words and Lines Count of Each Document
-There are three documents on the data (blogs, news and twitter). Below are the Line and words counts of each document.
-
-```{r echo=FALSE}
-ln = length(docs)
-filenames = vector(mode="character",ln)
-wordsCount = vector(mode="numeric",ln)
-linesCount = vector(mode="numeric",ln)
-
-for (i in 1:ln){
-    filenames[i] = docs[[i]]$meta$id
-}
-for (i in 1:ln){
-    linesCount[i] = length(docs[[i]]$content)
-}
-
-for (i in 1:ln){
-    
-    wordsCount[i] = stri_stats_latex(docs[[i]]$content)["Words"]
-}
-
-simpleStat = data.frame(filenames, linesCount, wordsCount)
-kable(simpleStat, col.names = c("Filename", "Lines Count", "Words Count"))
-```
-
-
-
-##Cleaning Text and Creating Corpus
 ```{r text_clean, cache = TRUE}
 if (DATA_PROCESSED) {
 
@@ -204,6 +211,8 @@ if (DATA_PROCESSED) {
   saveRDS(docs, file.path(wk_dir, "corpus_docs.RDS"))
 }
 ```
+
+#Tokenization and N-Gram
 
 ```{r helper_fucntion}
 tokenizer_bigram = function(x) {
@@ -223,8 +232,9 @@ removeEOS = function(x) {
 ```
 
 
-
-#20 Most Frequent Words
+####20 Most Frequent Words
+Single words are tokenized uning DocumentTermMatrix function from tm package. Then the fequency of each token is summed across documents and then ordered from highest frequency to lowest.
+A bar chart shows 20 most freqeunt tokens.
 ```{r dtm_uni, cache = TRUE}
 freq_uni = vector()
 freq_uni = readRDS(file.path(wk_dir,"freq_uni.RDS"))
@@ -244,14 +254,15 @@ if ( length(freq_uni) == 0 | !DATA_PROCESSED ) {
 barplot(freq_uni[1:20], col='tan', las=2)
 ```
 
-#Wordcloud
+####Wordcloud
 
 ```{r}
 wordcloud(names(freq_uni), freq_uni, max.words = 100, colors = brewer.pal(8,"Dark2"),
           random.color = TRUE)
 ```
 
-#20 Most Frequent 2-grams
+####20 Most Frequent 2-grams
+Documents are tokenized uing 2-gram tokenizer. 20 most frequent tokens are shown on a bar chart.
 ```{r dtm_bi, cache=TRUE}
 freq_bi = vector()
 freq_bi = readRDS(file.path(wk_dir,"freq_bi.RDS"))
@@ -270,7 +281,7 @@ barplot(freq_bi[1:20], col='tan', las=2)
 ```
 
 
-##20 Most Frequent 3-grams
+####20 Most Frequent 3-grams
 
 ```{r dtm_tri, cache=TRUE}
 freq_tri = vector()
@@ -290,11 +301,25 @@ barplot(freq_tri[1:20], col='tan', las=2)
 
 ```
 
-###Fequency Distribution of 1-gram, 2-gram and 3-gram
+
+#Fequency Distribution
+
+####Top 50% of 1-gram
+The frequency of more than 50% of 1-grams is 1. Below is the frequency distributiton of top 50% of 1-gram
 ```{r}
 #par(mfrow=c(1,3))
-plot(log10(freq_uni))
-plot(log10(freq_bi))
-plot(log10(freq_tri))
+plot(log10(freq_uni[1:length(freq_uni)/2]), main = "1-Gram", ylab="log10(frequency)")
+```
+
+####Top 1/3 of 2-gram
+The frequency of more than 2/3 of 2-grams is 1. Below is the frequency distributiton of top 1/3 of 1-gram.
+```{r}
+plot(log10(freq_bi[1:length(freq_bi)/3]), main = "2-Gram", ylab="log10(frequency)")
+```
+
+####Top 20% of 3-gram
+The frequency of more than 80% of 3-grams is 1. Below is the frequency distributiton of top 20% of 1-gram.
+```{r}
+plot(log10(freq_tri[1:length(freq_bi)/5]), main = "3-Gram", ylab="log10(frequency)")
 ```
 
