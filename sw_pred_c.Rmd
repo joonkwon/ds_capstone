@@ -331,6 +331,25 @@ plot(log10(freq_bi[1:length(freq_bi)/3]), main = "2-Gram", ylab="log10(frequency
 ####Top 20% of 3-gram
 The frequency of more than 80% of 3-grams is 1. Below is the frequency distributiton of top 20% of 1-gram.
 ```{r}
-plot(log10(freq_tri[1:length(freq_bi)/5]), main = "3-Gram", ylab="log10(frequency)")
+plot(log10(freq_tri[1:length(freq_tri)/5]), main = "3-Gram", ylab="log10(frequency)")
 ```
+
+
+#Algorithm to Build
+This idea on the predictive algorithm mostly relies on the knowledge gained from D. Jurafsky and J. Marin's book, "Speech and Language Process" (2002). N-gram probability model will be used. The probability of unknown n-gram will be calculated using Good-Turing smoothing with Katz backoff.
+To hit balance between performance and efficiency, 3-gram will be used. According to Markove assumption, to predict the next word, all the previous words don't have to be known. Knowing only a few previous words will provide a good prediction. 3-gram will provide a good model for predicting a word following a short phrase. In case there is no 3-gram, bigram will be used. the bigram probability will be calculated from the smoothed probability of zero frequency mass of 3-gram.
+From the probability, 3 words of highest probability will be suggested for user.
+
+###Good-Turing Smoothing
+Good-Turing Smoothing is an approach to guess the probability of an event that doesn't yet happen. Good-Turing smoothing assign certain amount of probability to the events that doesn't happen yet. In order to do keep the total probability to 1, Good-Turing discounts certain portion of frequency by reducting it to smaller number - eg. frequency 1 to 0.8, frequency 2 to 1.7, etc. The sum of discounted frequency should be the same to the reserved probability mass of frequency 0.
+
+###Katz Back-off
+According to Katz, the frquency that is larger than certain number (Katz recommended 5) is reliable without discount. So we will use frequencies over 5 as they are without any discount. We will only discount the frequncies between 1 and 5 using Good-Turing Discount formula.
+
+$$r^*=(r+1)\frac{N_{r+1}}{N_r}$$
+
+The probability mass of frequency 0 is then the sum of each discount of 1 - 5 frequencies mulitiplied by the frequency of each frequency. In this way, the total number of 3-gram doesn't change after the discount.
+
+###Bigram
+If there is not enough number of 3-grams for prediction - we predict 3 words, bigram will be used. the probability mass of 0 frequency will be shared by bigrams and the probability will calculated from that.
 
